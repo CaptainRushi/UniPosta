@@ -6,6 +6,7 @@ import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Zap, Eye, EyeOff } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
+import { supabase } from "@/integrations/supabase/client";
 
 export default function Login() {
   const [email, setEmail] = useState("");
@@ -14,21 +15,101 @@ export default function Login() {
   const [isLoading, setIsLoading] = useState(false);
   const navigate = useNavigate();
   const { toast } = useToast();
+  const getErrorMessage = (err: unknown): string => {
+    if (err instanceof Error) return err.message;
+    if (typeof err === "object" && err !== null && "message" in err) {
+      const m = (err as { message?: unknown }).message;
+      return typeof m === "string" ? m : "Unknown error";
+    }
+    return "Unknown error";
+  };
+  const handleResendVerification = async () => {
+    if (!email) {
+      toast({
+        title: "Enter your email",
+        description: "Provide the email you used to sign up.",
+        variant: "destructive",
+      });
+      return;
+    }
+    const { error } = await supabase.auth.resend({ type: "signup", email });
+    if (error) {
+      toast({
+        title: "Error",
+        description: getErrorMessage(error),
+        variant: "destructive",
+      });
+      return;
+    }
+    toast({
+      title: "Verification email sent",
+      description: "Check your inbox and spam folder.",
+    });
+  };
+  const handleSendMagicLink = async () => {
+    if (!email) {
+      toast({
+        title: "Enter your email",
+        description: "Provide the email to receive a magic link.",
+        variant: "destructive",
+      });
+      return;
+    }
+    const { error } = await supabase.auth.signInWithOtp({
+      email,
+      options: { emailRedirectTo: `${window.location.origin}/dashboard` },
+    });
+    if (error) {
+      toast({
+        title: "Error",
+        description: getErrorMessage(error),
+        variant: "destructive",
+      });
+      return;
+    }
+    toast({
+      title: "Magic link sent",
+      description: "Open the link from your email to sign in.",
+    });
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
     
-    // Simulate login
-    await new Promise(resolve => setTimeout(resolve, 1000));
-    
-    toast({
-      title: "Welcome back!",
-      description: "You've successfully signed in.",
-    });
-    
-    setIsLoading(false);
-    navigate("/dashboard");
+    try {
+      const { error } = await supabase.auth.signInWithPassword({
+        email,
+        password,
+      });
+
+      if (error) throw error;
+      
+      toast({
+        title: "Welcome back!",
+        description: "You've successfully signed in.",
+      });
+      
+      navigate("/dashboard");
+    } catch (error: unknown) {
+      const msg = getErrorMessage(error);
+      const isBreached = /breach|leak|pwned/i.test(msg);
+      if (isBreached) {
+        toast({
+          title: "Password blocked",
+          description: "This password appears in known breaches. Reset your password.",
+          variant: "destructive",
+        });
+      } else {
+        toast({
+          title: "Error",
+          description: msg,
+          variant: "destructive",
+        });
+      }
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   return (
@@ -36,7 +117,7 @@ export default function Login() {
       {/* Background Effects */}
       <div className="fixed inset-0 overflow-hidden pointer-events-none">
         <div className="absolute top-1/4 left-1/4 w-96 h-96 bg-primary/20 rounded-full blur-3xl animate-pulse-glow" />
-        <div className="absolute bottom-1/4 right-1/4 w-96 h-96 bg-primary/10 rounded-full blur-3xl animate-pulse-glow" style={{ animationDelay: "1s" }} />
+        <div className="absolute bottom-1/4 right-1/4 w-96 h-96 bg-primary/10 rounded-full blur-3xl animate-pulse-glow" />
       </div>
 
       <Card variant="glass" className="w-full max-w-md animate-scale-in relative z-10">
@@ -98,6 +179,14 @@ export default function Login() {
               >
                 Forgot password?
               </Link>
+              <div className="flex items-center gap-2">
+                <Button type="button" variant="ghost" size="sm" onClick={handleResendVerification}>
+                  Resend verification
+                </Button>
+                <Button type="button" variant="ghost" size="sm" onClick={handleSendMagicLink}>
+                  Send magic link
+                </Button>
+              </div>
             </div>
             <Button type="submit" variant="glow" className="w-full" size="lg" disabled={isLoading}>
               {isLoading ? "Signing in..." : "Sign in"}

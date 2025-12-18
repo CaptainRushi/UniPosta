@@ -1,11 +1,71 @@
+import { useEffect, useState } from "react";
 import { DashboardLayout } from "@/components/layout/DashboardLayout";
 import { StatsCard } from "@/components/dashboard/StatsCard";
 import { RecentCampaigns } from "@/components/dashboard/RecentCampaigns";
 import { PerformanceChart } from "@/components/dashboard/PerformanceChart";
 import { PlatformBreakdown } from "@/components/dashboard/PlatformBreakdown";
 import { DollarSign, Users, MousePointer, Target, TrendingUp } from "lucide-react";
+import { supabase } from "@/integrations/supabase/client";
+import { useAuth } from "@/contexts/AuthContext";
 
 export default function Dashboard() {
+  const { user } = useAuth();
+  const [stats, setStats] = useState({
+    spend: 0,
+    reach: 0,
+    clicks: 0,
+    conversions: 0
+  });
+
+  useEffect(() => {
+    async function fetchStats() {
+      if (!user) return;
+
+      // In a real app, you would probably have a materialized view or a more complex query.
+      // For MVP, we'll fetch from analytics_events.
+      const { data, error } = await supabase
+        .from('analytics_events')
+        .select('metric_type, value');
+
+      if (error) {
+        console.error('Error fetching stats:', error);
+        return;
+      }
+
+      if (!data) return;
+
+      const newStats = {
+        spend: 0,
+        reach: 0,
+        clicks: 0,
+        conversions: 0
+      };
+
+      data.forEach((event) => {
+        if (event.metric_type === 'spend') newStats.spend += Number(event.value);
+        if (event.metric_type === 'reach') newStats.reach += Number(event.value);
+        if (event.metric_type === 'clicks') newStats.clicks += Number(event.value);
+        if (event.metric_type === 'conversions') newStats.conversions += Number(event.value);
+      });
+
+      // If no data, keep defaults (or mock data for demo purposes if preferred)
+      // For now, let's mix real data with the static demo data if real data is empty
+      if (data.length > 0) {
+         setStats(newStats);
+      } else {
+         // Fallback to demo data so the dashboard isn't empty for the user immediately
+         setStats({
+            spend: 12450,
+            reach: 1200000,
+            clicks: 45200,
+            conversions: 2340
+         });
+      }
+    }
+
+    fetchStats();
+  }, [user]);
+
   return (
     <DashboardLayout>
       <div className="space-y-6">
@@ -23,28 +83,28 @@ export default function Dashboard() {
         <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
           <StatsCard
             title="Total Spend"
-            value="$12,450"
+            value={`$${stats.spend.toLocaleString()}`}
             change="+8.2% from last week"
             changeType="positive"
             icon={DollarSign}
           />
           <StatsCard
             title="Total Reach"
-            value="1.2M"
+            value={(stats.reach > 1000000 ? (stats.reach / 1000000).toFixed(1) + 'M' : stats.reach.toLocaleString())}
             change="+15.3% from last week"
             changeType="positive"
             icon={Users}
           />
           <StatsCard
             title="Total Clicks"
-            value="45.2K"
+            value={(stats.clicks > 1000 ? (stats.clicks / 1000).toFixed(1) + 'K' : stats.clicks.toLocaleString())}
             change="+12.1% from last week"
             changeType="positive"
             icon={MousePointer}
           />
           <StatsCard
             title="Conversions"
-            value="2,340"
+            value={stats.conversions.toLocaleString()}
             change="-2.4% from last week"
             changeType="negative"
             icon={Target}

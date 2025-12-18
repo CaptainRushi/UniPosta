@@ -8,15 +8,20 @@ import { Textarea } from "@/components/ui/textarea";
 import { Image, Video, Link2, Sparkles, Instagram, Facebook, Twitter, Linkedin } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { useNavigate } from "react-router-dom";
+import { supabase } from "@/integrations/supabase/client";
+import { useAuth } from "@/contexts/AuthContext";
+import { api } from "@/lib/api";
 
 export default function CreatePost() {
   const [caption, setCaption] = useState("");
   const [ctaLink, setCtaLink] = useState("");
   const [mediaType, setMediaType] = useState<"image" | "video">("image");
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const { toast } = useToast();
   const navigate = useNavigate();
+  const { user } = useAuth();
 
-  const handleAdapt = () => {
+  const handleAdapt = async () => {
     if (!caption.trim()) {
       toast({
         title: "Caption required",
@@ -25,7 +30,51 @@ export default function CreatePost() {
       });
       return;
     }
-    navigate("/adapt", { state: { caption, ctaLink, mediaType } });
+
+    if (!user) {
+      toast({
+        title: "Authentication required",
+        description: "Please sign in to create a post.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    setIsSubmitting(true);
+
+    try {
+      // 1. Create Master Post
+      const { data: masterPost, error } = await supabase
+        .from('master_posts')
+        .insert({
+          user_id: user.id,
+          caption: caption,
+          cta_link: ctaLink,
+          // media_url: TODO: Implement actual upload
+        })
+        .select()
+        .single();
+
+      if (error) throw error;
+      
+      if (!masterPost) throw new Error("Failed to create master post");
+
+      toast({
+        title: "Master Post Created",
+        description: "Your content has been saved securely.",
+      });
+
+      navigate("/adapt", { state: { caption, ctaLink, mediaType, masterPostId: masterPost.id } });
+
+    } catch (error: any) {
+      toast({
+        title: "Error",
+        description: error.message,
+        variant: "destructive",
+      });
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   return (
@@ -123,10 +172,15 @@ export default function CreatePost() {
               </CardContent>
             </Card>
 
-            <Button variant="glow" size="lg" className="w-full" onClick={handleAdapt}>
-              <Sparkles className="h-5 w-5 mr-2" />
-              Adapt with AI
-            </Button>
+            <div className="flex justify-end gap-3">
+              <Button variant="outline" onClick={() => navigate("/dashboard")}>
+                Cancel
+              </Button>
+              <Button onClick={handleAdapt} className="gap-2" disabled={isSubmitting}>
+                <Sparkles className="h-4 w-4" />
+                {isSubmitting ? "Saving..." : "Save & Adapt Content"}
+              </Button>
+            </div>
           </div>
 
           {/* Live Preview */}

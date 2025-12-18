@@ -9,6 +9,12 @@ import { Switch } from "@/components/ui/switch";
 import { Sparkles, RefreshCw, Check, Copy, Instagram, Facebook, Twitter, Linkedin } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { useNavigate, useLocation } from "react-router-dom";
+import { api } from "@/lib/api";
+import { supabase } from "@/integrations/supabase/client";
+import { Database } from "@/integrations/supabase/types";
+import { useAuth } from "@/contexts/AuthContext";
+
+type PlatformType = Database['public']['Enums']['platform_type'];
 
 const tones = [
   { id: "professional", label: "Professional", emoji: "💼" },
@@ -27,6 +33,7 @@ export default function AIAdapt() {
   const location = useLocation();
   const navigate = useNavigate();
   const { toast } = useToast();
+  const { user } = useAuth();
   
   const [selectedTone, setSelectedTone] = useState("professional");
   const [hashtagsEnabled, setHashtagsEnabled] = useState(true);
@@ -34,27 +41,72 @@ export default function AIAdapt() {
   const [adaptedContent, setAdaptedContent] = useState<Record<string, string>>({});
   
   const originalCaption = (location.state as any)?.caption || "Check out our amazing new product! It's designed to make your life easier. Click the link to learn more.";
+  const masterPostId = (location.state as any)?.masterPostId;
 
   const generateVariants = async () => {
     setIsGenerating(true);
     
-    // Simulate AI generation
-    await new Promise(resolve => setTimeout(resolve, 2000));
-    
-    const variants: Record<string, string> = {
-      instagram: `✨ ${originalCaption}\n\n${hashtagsEnabled ? "#NewProduct #Innovation #MustHave #ShopNow #Trending" : ""}`,
-      facebook: `🎉 ${originalCaption}\n\nTag someone who needs this! 👇`,
-      twitter: originalCaption.slice(0, 200) + (originalCaption.length > 200 ? "... 🔗" : " 🔥"),
-      linkedin: `Excited to announce: ${originalCaption}\n\nWhat do you think? Let us know in the comments.`,
-    };
-    
-    setAdaptedContent(variants);
-    setIsGenerating(false);
-    
-    toast({
-      title: "Content adapted!",
-      description: "Your content has been optimized for all platforms.",
-    });
+    try {
+      const newVariants: Record<string, string> = {};
+
+      // In a real scenario, you might want to parallelize this, 
+      // but for error handling clarity we can do it sequentially or use Promise.all
+      // Note: We are using the Edge Function for EACH platform.
+      // Optimally, the Edge Function could handle multiple platforms at once.
+      // For MVP, let's just do one "bulk" simulation or iterate.
+      
+      const promises = platforms.map(async (platform) => {
+        try {
+          const result = await api.ai.adaptContent({
+            master_post_content: originalCaption,
+            target_platform: platform.name,
+            tone: selectedTone,
+            objective: "engagement"
+          });
+          
+          let content = result.caption;
+          if (hashtagsEnabled && result.hashtags && result.hashtags.length > 0) {
+            content += `\n\n${result.hashtags.join(" ")}`;
+          }
+
+          newVariants[platform.id] = content;
+
+          // Save to database
+          if (user && masterPostId) {
+             await supabase.from('platform_variants').insert({
+               master_post_id: masterPostId,
+               user_id: user.id,
+               platform: platform.id as PlatformType,
+               caption: content,
+               hashtags: result.hashtags,
+               // media_url: TODO
+             });
+          }
+
+        } catch (e) {
+          console.error(`Failed to adapt for ${platform.name}`, e);
+          newVariants[platform.id] = "Error generating content. Please try again.";
+        }
+      });
+
+      await Promise.all(promises);
+      
+      setAdaptedContent(newVariants);
+      
+      toast({
+        title: "Content adapted!",
+        description: "Your content has been optimized for all platforms.",
+      });
+
+    } catch (error: any) {
+      toast({
+        title: "Error",
+        description: "Failed to generate variants. Please try again.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsGenerating(false);
+    }
   };
 
   const copyToClipboard = (text: string) => {
