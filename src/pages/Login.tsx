@@ -8,6 +8,8 @@ import { Zap, Eye, EyeOff } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 
+import SocialSignInButton from "@/components/social/SocialSignInButton";
+
 export default function Login() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -76,7 +78,7 @@ export default function Login() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
-    
+
     try {
       const { error } = await supabase.auth.signInWithPassword({
         email,
@@ -84,12 +86,12 @@ export default function Login() {
       });
 
       if (error) throw error;
-      
+
       toast({
         title: "Welcome back!",
         description: "You've successfully signed in.",
       });
-      
+
       navigate("/dashboard");
     } catch (error: unknown) {
       const msg = getErrorMessage(error);
@@ -133,7 +135,24 @@ export default function Login() {
             <CardDescription>Sign in to your account to continue</CardDescription>
           </div>
         </CardHeader>
-        <CardContent>
+        <CardContent className="space-y-6">
+          <div className="grid grid-cols-2 gap-3">
+            <SocialSignInButton provider="facebook" label="Facebook" />
+            <SocialSignInButton provider="instagram" label="Instagram" />
+            <SocialSignInButton provider="twitter" label="Twitter" />
+            <SocialSignInButton provider="linkedin" label="LinkedIn" />
+          </div>
+
+          <div className="relative">
+            <div className="absolute inset-0 flex items-center">
+              <span className="w-full border-t" />
+            </div>
+            <div className="relative flex justify-center text-xs uppercase">
+              <span className="bg-background px-2 text-muted-foreground">
+                Or continue with email
+              </span>
+            </div>
+          </div>
           <form onSubmit={handleSubmit} className="space-y-4">
             <div className="space-y-2">
               <Label htmlFor="email">Email</Label>

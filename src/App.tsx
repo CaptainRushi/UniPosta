@@ -12,6 +12,7 @@ import CreatePost from "./pages/CreatePost";
 import AIAdapt from "./pages/AIAdapt";
 import LaunchAds from "./pages/LaunchAds";
 import Analytics from "./pages/Analytics";
+import Settings from "./pages/Settings";
 import NotFound from "./pages/NotFound";
 
 import { AuthProvider } from "./contexts/AuthContext";

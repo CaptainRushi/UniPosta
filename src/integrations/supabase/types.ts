@@ -181,6 +181,53 @@ export interface Database {
           }
         ]
       }
+      social_accounts: {
+        Row: {
+          id: string
+          user_id: string
+          platform: string
+          account_id: string
+          account_name: string | null
+          access_token: string
+          refresh_token: string | null
+          expires_at: string | null
+          created_at: string
+          updated_at: string
+        }
+        Insert: {
+          id?: string
+          user_id: string
+          platform: string
+          account_id: string
+          account_name?: string | null
+          access_token: string
+          refresh_token?: string | null
+          expires_at?: string | null
+          created_at?: string
+          updated_at?: string
+        }
+        Update: {
+          id?: string
+          user_id?: string
+          platform?: string
+          account_id?: string
+          account_name?: string | null
+          access_token?: string
+          refresh_token?: string | null
+          expires_at?: string | null
+          created_at?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "social_accounts_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          }
+        ]
+      }
     }
     Views: {
       [_ in never]: never
