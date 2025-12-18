@@ -1,0 +1,21 @@
+{
+    "compilerOptions": {
+        "module": "esnext",
+        "target": "esnext",
+        "lib": [
+            "esnext",
+            "dom",
+            "dom.iterable"
+        ],
+        "allowJs": true,
+        "strict": true,
+        "allowImportingTsExtensions": true,
+        "noEmit": true,
+        "moduleResolution": "bundler"
+    },
+    "include": [
+        "**/*.ts",
+        "**/*.tsx",
+        "deno.d.ts"
+    ]
+}

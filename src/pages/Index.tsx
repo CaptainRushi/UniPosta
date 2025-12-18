@@ -1,6 +1,7 @@
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Zap, ArrowRight, Sparkles, Rocket, BarChart3, Check } from "lucide-react";
+import { APP_NAME, TAGLINE } from "@/lib/constants";
 
 const features = [
   {
@@ -43,7 +44,7 @@ export default function Index() {
             <div className="flex h-9 w-9 items-center justify-center rounded-lg gradient-primary">
               <Zap className="h-5 w-5 text-primary-foreground" />
             </div>
-            <span className="text-xl font-bold text-foreground">AdSync</span>
+            <span className="text-xl font-bold text-foreground">{APP_NAME}</span>
           </Link>
           <div className="flex items-center gap-4">
             <Link to="/login">
@@ -63,17 +64,17 @@ export default function Index() {
             <Sparkles className="h-4 w-4 text-primary" />
             <span>AI-powered social media advertising</span>
           </div>
-          
+
           <h1 className="text-5xl md:text-7xl font-bold text-foreground leading-tight animate-fade-in" style={{ animationDelay: "0.1s" }}>
             One post.
             <br />
-            <span className="text-gradient">Every platform.</span>
+            <span className="text-gradient">Everywhere.</span>
           </h1>
-          
+
           <p className="text-xl text-muted-foreground max-w-2xl mx-auto animate-fade-in" style={{ animationDelay: "0.2s" }}>
-            Create once, publish everywhere. AdSync uses AI to adapt your content for each platform and launch ads across Instagram, Facebook, X, and LinkedIn from a single dashboard.
+            Create once, publish everywhere. {APP_NAME} uses AI to adapt your content for each platform and launch ads across Instagram, Facebook, X, and LinkedIn from a single dashboard.
           </p>
-          
+
           <div className="flex flex-col sm:flex-row items-center justify-center gap-4 animate-fade-in" style={{ animationDelay: "0.3s" }}>
             <Link to="/signup">
               <Button variant="glow" size="lg" className="text-lg px-8">
@@ -128,7 +129,7 @@ export default function Index() {
           <div className="grid md:grid-cols-2 gap-12 items-center">
             <div>
               <h2 className="text-3xl md:text-4xl font-bold text-foreground mb-6">
-                Why marketers love AdSync
+                Why marketers love {APP_NAME}
               </h2>
               <ul className="space-y-4">
                 {benefits.map((benefit) => (
@@ -164,7 +165,7 @@ export default function Index() {
           Ready to transform your ad workflow?
         </h2>
         <p className="text-lg text-muted-foreground mb-8 max-w-xl mx-auto">
-          Join thousands of marketers who save time and boost results with AdSync.
+          Join thousands of marketers who save time and boost results with {APP_NAME}.
         </p>
         <Link to="/signup">
           <Button variant="glow" size="lg" className="text-lg px-10">
@@ -181,10 +182,10 @@ export default function Index() {
             <div className="flex h-8 w-8 items-center justify-center rounded-lg gradient-primary">
               <Zap className="h-4 w-4 text-primary-foreground" />
             </div>
-            <span className="font-semibold text-foreground">AdSync</span>
+            <span className="font-semibold text-foreground">{APP_NAME}</span>
           </div>
           <p className="text-sm text-muted-foreground">
-            © 2024 AdSync. All rights reserved.
+            © 2024 {APP_NAME}. All rights reserved.
           </p>
         </div>
       </footer>

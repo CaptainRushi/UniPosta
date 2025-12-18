@@ -10,6 +10,8 @@ import { supabase } from "@/integrations/supabase/client";
 
 import SocialSignInButton from "@/components/social/SocialSignInButton";
 
+import { APP_NAME } from "@/lib/constants";
+
 export default function Login() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -88,7 +90,7 @@ export default function Login() {
       if (error) throw error;
 
       toast({
-        title: "Welcome back!",
+        title: `Welcome to ${APP_NAME}`,
         description: "You've successfully signed in.",
       });
 
@@ -128,10 +130,10 @@ export default function Login() {
             <div className="flex h-10 w-10 items-center justify-center rounded-xl gradient-primary shadow-glow">
               <Zap className="h-6 w-6 text-primary-foreground" />
             </div>
-            <span className="text-2xl font-bold text-foreground">AdSync</span>
+            <span className="text-2xl font-bold text-foreground">{APP_NAME}</span>
           </Link>
           <div>
-            <CardTitle className="text-2xl">Welcome back</CardTitle>
+            <CardTitle className="text-2xl">Welcome to {APP_NAME}</CardTitle>
             <CardDescription>Sign in to your account to continue</CardDescription>
           </div>
         </CardHeader>

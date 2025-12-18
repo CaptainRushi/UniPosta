@@ -12,6 +12,10 @@ import CreatePost from "./pages/CreatePost";
 import AIAdapt from "./pages/AIAdapt";
 import LaunchAds from "./pages/LaunchAds";
 import Analytics from "./pages/Analytics";
+import Campaigns from "./pages/Campaigns";
+import CampaignDetails from "./pages/CampaignDetails";
+import ProtectedRoute from "./components/auth/ProtectedRoute";
+import Plans from "./pages/Plans";
 import Settings from "./pages/Settings";
 import NotFound from "./pages/NotFound";
 
@@ -32,10 +36,14 @@ const App = () => (
             <Route path="/signup" element={<Signup />} />
             <Route path="/forgot-password" element={<ForgotPassword />} />
             <Route path="/dashboard" element={<Dashboard />} />
+            <Route path="/campaigns" element={<ProtectedRoute><Campaigns /></ProtectedRoute>} />
+            <Route path="/campaigns/:id" element={<ProtectedRoute><CampaignDetails /></ProtectedRoute>} />
             <Route path="/create" element={<CreatePost />} />
             <Route path="/adapt" element={<AIAdapt />} />
             <Route path="/launch" element={<LaunchAds />} />
             <Route path="/analytics" element={<Analytics />} />
+            <Route path="/plans" element={<ProtectedRoute><Plans /></ProtectedRoute>} />
+            <Route path="/settings" element={<Settings />} />
             <Route path="*" element={<NotFound />} />
           </Routes>
         </BrowserRouter>

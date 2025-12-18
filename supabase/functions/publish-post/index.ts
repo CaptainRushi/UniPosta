@@ -1,11 +1,13 @@
+// @ts-ignore
 import { serve } from "http/server";
+// @ts-ignore
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 import { decrypt, encrypt } from "../_shared/encryption.ts";
 
 const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
 const supabaseServiceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
 
-serve(async (req) => {
+serve(async (req: Request) => {
     if (req.method === "OPTIONS") {
         return new Response("ok", { headers: { "Access-Control-Allow-Origin": "*" } });
     }
@@ -87,7 +89,13 @@ serve(async (req) => {
     }
 });
 
-async function refreshPlatformToken(platform: string, refreshToken: string) {
+interface TokenResponse {
+    access_token: string;
+    refresh_token?: string;
+    expires_in?: number;
+}
+
+async function refreshPlatformToken(platform: string, refreshToken: string): Promise<TokenResponse | null> {
     // Implementation for token refresh logic for each platform
     // This would involve calling the platform's token endpoint with grant_type=refresh_token
     console.log(`Refreshing token for ${platform}`);

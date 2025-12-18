@@ -1,3 +1,4 @@
+// @ts-ignore
 import { serve } from "http/server";
 
 const CLIENT_IDS = {
@@ -8,7 +9,7 @@ const CLIENT_IDS = {
 
 const REDIRECT_URI = Deno.env.get("OAUTH_REDIRECT_URI") || "http://localhost:8081/api/oauth-callback";
 
-serve(async (req) => {
+serve(async (req: Request) => {
     const url = new URL(req.url);
     const platform = url.searchParams.get("platform");
     const userId = url.searchParams.get("user_id");

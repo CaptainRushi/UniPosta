@@ -1,4 +1,6 @@
+// @ts-ignore
 import { serve } from "http/server";
+// @ts-ignore
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 import { encrypt } from "../_shared/encryption.ts";
 
@@ -19,7 +21,7 @@ const CLIENT_SECRETS = {
 
 const REDIRECT_URI = Deno.env.get("OAUTH_REDIRECT_URI") || "http://localhost:8081/api/oauth-callback";
 
-serve(async (req) => {
+serve(async (req: Request) => {
     const url = new URL(req.url);
     const code = url.searchParams.get("code");
     const state = url.searchParams.get("state"); // Format: user_id:platform

@@ -9,17 +9,23 @@ import {
   Settings,
   ChevronLeft,
   Zap,
+  Megaphone,
+  CreditCard,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 
 const navItems = [
   { title: "Dashboard", url: "/dashboard", icon: LayoutDashboard },
+  { title: "Campaigns", url: "/campaigns", icon: Megaphone },
   { title: "Create Post", url: "/create", icon: PenSquare },
   { title: "AI Adapt", url: "/adapt", icon: Sparkles },
   { title: "Launch Ads", url: "/launch", icon: Rocket },
   { title: "Analytics", url: "/analytics", icon: BarChart3 },
+  { title: "Plans", url: "/plans", icon: CreditCard },
 ];
+
+import { APP_NAME } from "@/lib/constants";
 
 export function AppSidebar() {
   const [collapsed, setCollapsed] = useState(false);
@@ -40,7 +46,7 @@ export function AppSidebar() {
               <div className="flex h-8 w-8 items-center justify-center rounded-lg gradient-primary">
                 <Zap className="h-5 w-5 text-primary-foreground" />
               </div>
-              <span className="text-xl font-bold text-foreground">AdSync</span>
+              <span className="text-xl font-bold text-foreground">{APP_NAME}</span>
             </Link>
           )}
           {collapsed && (

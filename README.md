@@ -1,73 +1,91 @@
-# Welcome to your Lovable project
+# Uniposta - Unified Social Publishing Platform
 
-## Project info
+Uniposta is a comprehensive SaaS application designed to streamline social media management. It allows users to create campaigns, manage posts across multiple platforms, and track performance from a single, unified dashboard.
 
-**URL**: https://lovable.dev/projects/REPLACE_WITH_PROJECT_ID
+## 🚀 Key Features
 
-## How can I edit this code?
+*   **Campaign Management**: 
+    *   Create, track, and organize advertising campaigns.
+    *   Set objectives, start/end dates, and manage campaign status.
+*   **Multi-Platform Posting**: 
+    *   Create content once and publish to Facebook, Instagram, LinkedIn, and X (Twitter).
+    *   Platform-specific customizations and previews.
+*   **Global Search**: 
+    *   Instantly find campaigns, posts, and connected accounts.
+    *   Keyboard shortcut support (`Cmd+K` / `Ctrl+K`).
+*   **User Subscriptions**: 
+    *   **Starter Plan**: Essential features for individuals (Limited campaigns/posts).
+    *   **Pro Plan**: Advanced features for agencies (Unlimited access, Priority support).
+    *   Dynamic plan enforcement and UI customization (e.g., Pro badges, content limits).
+*   **Social Account Integration**: 
+    *   Secure OAuth connections to social platforms.
+    *   Visual management of connected accounts in usage settings.
+*   **Modern UI/UX**: 
+    *   Built with a "Glassmorphism" aesthetic.
+    *   Dark mode optimized, responsive design.
 
-There are several ways of editing your application.
+## 🛠️ Tech Stack
 
-**Use Lovable**
+*   **Frontend**: React, TypeScript, Vite
+*   **Styling**: Tailwind CSS, Shadcn UI, Lucas Icons
+*   **Backend**: Supabase
+    *   **Database**: PostgreSQL with Row Level Security (RLS)
+    *   **Auth**: Supabase Auth (Email/Password, OAuth)
+    *   **Storage**: Supabase Storage buckets for media
+    *   **Edge Functions**: For handling secure OAuth exchanges (e.g., `oauth-connect`, `publish-post`)
+*   **State Management**: React Query (TanStack Query), Context API
 
-Simply visit the [Lovable Project](https://lovable.dev/projects/REPLACE_WITH_PROJECT_ID) and start prompting.
+## 🏁 Getting Started
 
-Changes made via Lovable will be committed automatically to this repo.
+### Prerequisites
 
-**Use your preferred IDE**
+*   Node.js (v18+)
+*   NPM
+*   Supabase project (for backend)
 
-If you want to work locally using your own IDE, you can clone this repo and push changes. Pushed changes will also be reflected in Lovable.
+### Installation
 
-The only requirement is having Node.js & npm installed - [install with nvm](https://github.com/nvm-sh/nvm#installing-and-updating)
+1.  **Clone the repository**
+    ```bash
+    git clone <repository-url>
+    cd AdSync-1
+    ```
 
-Follow these steps:
+2.  **Install dependencies**
+    ```bash
+    npm install
+    ```
 
-```sh
-# Step 1: Clone the repository using the project's Git URL.
-git clone <YOUR_GIT_URL>
+3.  **Environment Setup**
+    Create a `.env` file in the root directory with your Supabase credentials:
+    ```env
+    VITE_SUPABASE_URL=your_supabase_url
+    VITE_SUPABASE_ANON_KEY=your_supabase_anon_key
+    ```
 
-# Step 2: Navigate to the project directory.
-cd <YOUR_PROJECT_NAME>
+4.  **Database Setup**
+    Run the migration files located in `supabase/migrations` to set up the database schema, including:
+    *   Campaigns & Posts tables
+    *   Social Accounts table
+    *   Profiles table (for plan management)
+    *   Storage buckets and policies
 
-# Step 3: Install the necessary dependencies.
-npm i
+5.  **Run the application**
+    ```bash
+    npm run dev
+    ```
 
-# Step 4: Start the development server with auto-reloading and an instant preview.
-npm run dev
-```
+## 📂 Project Structure
 
-**Edit a file directly in GitHub**
+*   `src/pages`: Main application routes (Dashboard, Campaigns, Plans, Create Post, etc.)
+*   `src/components`: Reusable UI components.
+    *   `src/components/campaigns`: Campaign-specific logic (Create Dialog, Lists).
+    *   `src/components/notifications`: Notification panel.
+    *   `src/components/search`: Global search implementation.
+    *   `src/components/social`: Social account management panels.
+*   `supabase/functions`: Deno-based Edge Functions for server-side logic.
+*   `supabase/migrations`: SQL scripts for database schema management.
 
-- Navigate to the desired file(s).
-- Click the "Edit" button (pencil icon) at the top right of the file view.
-- Make your changes and commit the changes.
+## 🛡️ License
 
-**Use GitHub Codespaces**
-
-- Navigate to the main page of your repository.
-- Click on the "Code" button (green button) near the top right.
-- Select the "Codespaces" tab.
-- Click on "New codespace" to launch a new Codespace environment.
-- Edit files directly within the Codespace and commit and push your changes once you're done.
-
-## What technologies are used for this project?
-
-This project is built with:
-
-- Vite
-- TypeScript
-- React
-- shadcn-ui
-- Tailwind CSS
-
-## How can I deploy this project?
-
-Simply open [Lovable](https://lovable.dev/projects/REPLACE_WITH_PROJECT_ID) and click on Share -> Publish.
-
-## Can I connect a custom domain to my Lovable project?
-
-Yes, you can!
-
-To connect a domain, navigate to Project > Settings > Domains and click Connect Domain.
-
-Read more here: [Setting up a custom domain](https://docs.lovable.dev/features/custom-domain#custom-domain)
+This project is proprietary and confidential.

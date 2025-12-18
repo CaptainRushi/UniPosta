@@ -245,12 +245,12 @@ export default function CreatePost() {
                     <Button variant={mediaType === "image" ? "default" : "outline"} onClick={() => setMediaType("image")} className="flex-1"><Image className="h-4 w-4 mr-2" />Image</Button>
                     <Button variant={mediaType === "video" ? "default" : "outline"} onClick={() => setMediaType("video")} className="flex-1"><Video className="h-4 w-4 mr-2" />Video</Button>
                   </div>
-                  <div className="relative border-2 border-dashed rounded-xl p-8 text-center hover:border-primary/50 transition-colors">
+                  <div className="relative border-2 border-dashed rounded-xl p-20 text-center hover:border-primary/50 transition-colors">
                     <div className="flex flex-col items-center gap-2 pointer-events-none">
                       <Upload className="h-10 w-10 text-muted-foreground" />
                       <p className="text-sm text-muted-foreground"><span className="font-semibold text-primary">Click to upload</span> or drag and drop</p>
                     </div>
-                    <Input type="file" className="absolute inset-0 opacity-0 cursor-pointer" onChange={handleFileChange} disabled={uploading} />
+                    <Input type="file" className="absolute inset-0 opacity-0 cursor-pointer h-full w-full" onChange={handleFileChange} disabled={uploading} />
                   </div>
                   {mediaFile && (
                     <div className="flex items-center justify-between p-3 rounded-lg border bg-secondary/50">
