@@ -1,7 +1,6 @@
 import { useEffect, useState } from "react";
 import { DashboardLayout } from "@/components/layout/DashboardLayout";
 import { StatsCard } from "@/components/dashboard/StatsCard";
-import { RecentCampaigns } from "@/components/dashboard/RecentCampaigns";
 import { PerformanceChart } from "@/components/dashboard/PerformanceChart";
 import { PlatformBreakdown } from "@/components/dashboard/PlatformBreakdown";
 import { DollarSign, Users, MousePointer, Target, TrendingUp } from "lucide-react";
@@ -51,15 +50,15 @@ export default function Dashboard() {
       // If no data, keep defaults (or mock data for demo purposes if preferred)
       // For now, let's mix real data with the static demo data if real data is empty
       if (data.length > 0) {
-         setStats(newStats);
+        setStats(newStats);
       } else {
-         // Fallback to demo data so the dashboard isn't empty for the user immediately
-         setStats({
-            spend: 12450,
-            reach: 1200000,
-            clicks: 45200,
-            conversions: 2340
-         });
+        // Fallback to demo data so the dashboard isn't empty for the user immediately
+        setStats({
+          spend: 12450,
+          reach: 1200000,
+          clicks: 45200,
+          conversions: 2340
+        });
       }
     }
 
@@ -133,8 +132,7 @@ export default function Dashboard() {
           </div>
         </div>
 
-        {/* Recent Campaigns */}
-        <RecentCampaigns />
+
       </div>
     </DashboardLayout>
   );

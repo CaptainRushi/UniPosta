@@ -7,7 +7,7 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Image, Video, Link2, Sparkles, Instagram, Facebook, Twitter, Linkedin, Upload, CheckCircle, XCircle, Send } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { Progress } from "@/components/ui/progress";
@@ -36,11 +36,40 @@ export default function CreatePost() {
   const navigate = useNavigate();
   const { user } = useAuth();
 
+  const [searchParams] = useSearchParams();
+  const templateId = searchParams.get("template");
+
   useEffect(() => {
     if (user) {
       fetchConnectedPlatforms();
     }
   }, [user]);
+
+  useEffect(() => {
+    if (templateId && user) {
+      fetchTemplate(templateId);
+    }
+  }, [templateId, user]);
+
+  async function fetchTemplate(id: string) {
+    const { data: templateData, error } = await supabase
+      .from('templates' as any)
+      .select('*')
+      .eq('id', id)
+      .single();
+
+    const data = templateData as any;
+
+    if (data && !error) {
+      toast({ title: "Template loaded", description: `Applied template: ${data.name}` });
+      // Apply configuration
+      if (data.configuration) {
+        if (data.configuration.caption) setCaption(data.configuration.caption);
+        if (data.configuration.ctaLink) setCtaLink(data.configuration.ctaLink);
+        // Add more mappings as needed
+      }
+    }
+  }
 
   async function fetchConnectedPlatforms() {
     const { data, error } = await supabase

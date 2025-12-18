@@ -8,12 +8,11 @@ import Login from "./pages/Login";
 import Signup from "./pages/Signup";
 import ForgotPassword from "./pages/ForgotPassword";
 import Dashboard from "./pages/Dashboard";
+import Templates from "./pages/Templates";
 import CreatePost from "./pages/CreatePost";
 import AIAdapt from "./pages/AIAdapt";
 import LaunchAds from "./pages/LaunchAds";
 import Analytics from "./pages/Analytics";
-import Campaigns from "./pages/Campaigns";
-import CampaignDetails from "./pages/CampaignDetails";
 import ProtectedRoute from "./components/auth/ProtectedRoute";
 import Plans from "./pages/Plans";
 import Settings from "./pages/Settings";
@@ -36,8 +35,7 @@ const App = () => (
             <Route path="/signup" element={<Signup />} />
             <Route path="/forgot-password" element={<ForgotPassword />} />
             <Route path="/dashboard" element={<Dashboard />} />
-            <Route path="/campaigns" element={<ProtectedRoute><Campaigns /></ProtectedRoute>} />
-            <Route path="/campaigns/:id" element={<ProtectedRoute><CampaignDetails /></ProtectedRoute>} />
+            <Route path="/templates" element={<Templates />} />
             <Route path="/create" element={<CreatePost />} />
             <Route path="/adapt" element={<AIAdapt />} />
             <Route path="/launch" element={<LaunchAds />} />

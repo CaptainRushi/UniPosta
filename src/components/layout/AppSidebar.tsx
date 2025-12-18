@@ -9,15 +9,15 @@ import {
   Settings,
   ChevronLeft,
   Zap,
-  Megaphone,
+  Copy,
   CreditCard,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 
 const navItems = [
+  { title: "Templates", url: "/templates", icon: Copy },
   { title: "Dashboard", url: "/dashboard", icon: LayoutDashboard },
-  { title: "Campaigns", url: "/campaigns", icon: Megaphone },
   { title: "Create Post", url: "/create", icon: PenSquare },
   { title: "AI Adapt", url: "/adapt", icon: Sparkles },
   { title: "Launch Ads", url: "/launch", icon: Rocket },

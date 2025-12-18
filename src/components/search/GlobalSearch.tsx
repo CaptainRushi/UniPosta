@@ -11,11 +11,10 @@ import {
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
-import { Megaphone, FileText, UserCircle, Loader2, Search } from "lucide-react";
+import { FileText, UserCircle, Loader2, Search } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
 interface SearchResults {
-    campaigns: any[];
     posts: any[];
     accounts: any[];
 }
@@ -23,7 +22,7 @@ interface SearchResults {
 export function GlobalSearch() {
     const [open, setOpen] = useState(false);
     const [query, setQuery] = useState("");
-    const [results, setResults] = useState<SearchResults>({ campaigns: [], posts: [], accounts: [] });
+    const [results, setResults] = useState<SearchResults>({ posts: [], accounts: [] });
     const [loading, setLoading] = useState(false);
     const navigate = useNavigate();
     const { user } = useAuth();
@@ -43,14 +42,14 @@ export function GlobalSearch() {
     useEffect(() => {
         if (!open) {
             setQuery("");
-            setResults({ campaigns: [], posts: [], accounts: [] });
+            setResults({ posts: [], accounts: [] });
             return;
         }
     }, [open]);
 
     useEffect(() => {
         if (!query || query.trim() === "") {
-            setResults({ campaigns: [], posts: [], accounts: [] });
+            setResults({ posts: [], accounts: [] });
             return;
         }
 
@@ -60,12 +59,7 @@ export function GlobalSearch() {
                 const searchTerm = `%${query}%`;
 
                 // Parallel queries
-                const [campaignsResult, postsResult, accountsResult] = await Promise.all([
-                    supabase
-                        .from("campaigns")
-                        .select("id, name, status")
-                        .ilike("name", searchTerm)
-                        .limit(5),
+                const [postsResult, accountsResult] = await Promise.all([
                     supabase
                         .from("master_posts")
                         .select("id, caption")
@@ -79,7 +73,6 @@ export function GlobalSearch() {
                 ]);
 
                 setResults({
-                    campaigns: campaignsResult.data || [],
                     posts: postsResult.data || [],
                     accounts: accountsResult.data || [],
                 });
@@ -124,27 +117,14 @@ export function GlobalSearch() {
                         </div>
                     )}
                     {!loading &&
-                        results.campaigns.length === 0 &&
                         results.posts.length === 0 &&
                         results.accounts.length === 0 && (
                             <CommandEmpty>No results found.</CommandEmpty>
                         )}
 
-                    {results.campaigns.length > 0 && (
-                        <CommandGroup heading="Campaigns">
-                            {results.campaigns.map((campaign) => (
-                                <CommandItem
-                                    key={campaign.id}
-                                    onSelect={() => handleSelect(() => navigate(`/campaigns/${campaign.id}`))}
-                                >
-                                    <Megaphone className="mr-2 h-4 w-4" />
-                                    <span>{campaign.name}</span>
-                                </CommandItem>
-                            ))}
-                        </CommandGroup>
-                    )}
 
-                    {(results.campaigns.length > 0 && (results.posts.length > 0 || results.accounts.length > 0)) && <CommandSeparator />}
+
+                    {(results.posts.length > 0 || results.accounts.length > 0) && <CommandSeparator />}
 
                     {results.posts.length > 0 && (
                         <CommandGroup heading="Posts">
