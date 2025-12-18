@@ -39,4 +39,34 @@ export const api = {
       return filePath;
     }
   },
+  social: {
+    postToTwitter: async (text: string) => {
+      const { data, error } = await supabase.functions.invoke('post-to-twitter', {
+        body: { text },
+      });
+      if (error) throw error;
+      return data;
+    },
+    postToFacebook: async (text: string) => {
+      const { data, error } = await supabase.functions.invoke('post-to-facebook', {
+        body: { text },
+      });
+      if (error) throw error;
+      return data;
+    },
+    postToInstagram: async (text: string) => {
+      const { data, error } = await supabase.functions.invoke('post-to-instagram', {
+        body: { text },
+      });
+      if (error) throw error;
+      return data;
+    },
+    postToLinkedin: async (text: string) => {
+      const { data, error } = await supabase.functions.invoke('post-to-linkedin', {
+        body: { text },
+      });
+      if (error) throw error;
+      return data;
+    },
+  },
 };

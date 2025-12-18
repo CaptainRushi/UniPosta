@@ -7,6 +7,7 @@ import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { Zap } from "lucide-react";
+import { isStrongPassword, getErrorMessage } from "@/lib/utils";
 
 export default function ForgotPassword() {
   const [email, setEmail] = useState("");
@@ -22,16 +23,6 @@ export default function ForgotPassword() {
     const type = params.get("type");
     return type === "recovery";
   }, []);
-
-  const isStrongPassword = (pwd: string) => /(?=.*[A-Za-z])(?=.*\d).{12,}/.test(pwd);
-  const getErrorMessage = (err: unknown): string => {
-    if (err instanceof Error) return err.message;
-    if (typeof err === "object" && err !== null && "message" in err) {
-      const m = (err as { message?: unknown }).message;
-      return typeof m === "string" ? m : "Unknown error";
-    }
-    return "Unknown error";
-  };
 
   useEffect(() => {
     if (isRecovery) {

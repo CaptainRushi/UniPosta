@@ -38,6 +38,7 @@ export default function AIAdapt() {
   const [selectedTone, setSelectedTone] = useState("professional");
   const [hashtagsEnabled, setHashtagsEnabled] = useState(true);
   const [isGenerating, setIsGenerating] = useState(false);
+  const [isPosting, setIsPosting] = useState<Record<string, boolean>>({});
   const [adaptedContent, setAdaptedContent] = useState<Record<string, string>>({});
   
   const originalCaption = (location.state as any)?.caption || "Check out our amazing new product! It's designed to make your life easier. Click the link to learn more.";
@@ -49,12 +50,6 @@ export default function AIAdapt() {
     try {
       const newVariants: Record<string, string> = {};
 
-      // In a real scenario, you might want to parallelize this, 
-      // but for error handling clarity we can do it sequentially or use Promise.all
-      // Note: We are using the Edge Function for EACH platform.
-      // Optimally, the Edge Function could handle multiple platforms at once.
-      // For MVP, let's just do one "bulk" simulation or iterate.
-      
       const promises = platforms.map(async (platform) => {
         try {
           const result = await api.ai.adaptContent({
@@ -71,7 +66,6 @@ export default function AIAdapt() {
 
           newVariants[platform.id] = content;
 
-          // Save to database
           if (user && masterPostId) {
              await supabase.from('platform_variants').insert({
                master_post_id: masterPostId,
@@ -79,7 +73,6 @@ export default function AIAdapt() {
                platform: platform.id as PlatformType,
                caption: content,
                hashtags: result.hashtags,
-               // media_url: TODO
              });
           }
 
@@ -117,10 +110,39 @@ export default function AIAdapt() {
     });
   };
 
+  const handlePost = async (platformId: string, content: string) => {
+    setIsPosting(prev => ({...prev, [platformId]: true}));
+    try {
+      switch (platformId) {
+        case 'twitter':
+          await api.social.postToTwitter(content);
+          toast({ title: "Posted to Twitter!" });
+          break;
+        case 'facebook':
+          await api.social.postToFacebook(content);
+          toast({ title: "Posted to Facebook!" });
+          break;
+        case 'instagram':
+          await api.social.postToInstagram(content);
+          toast({ title: "Posted to Instagram!" });
+          break;
+        case 'linkedin':
+          await api.social.postToLinkedin(content);
+          toast({ title: "Posted to LinkedIn!" });
+          break;
+        default:
+          toast({ title: "Posting not implemented for this platform yet." });
+      }
+    } catch (error: any) {
+      toast({ title: "Error posting", description: error.message, variant: "destructive" });
+    } finally {
+      setIsPosting(prev => ({...prev, [platformId]: false}));
+    }
+  }
+
   return (
     <DashboardLayout>
       <div className="space-y-6">
-        {/* Page Header */}
         <div className="flex items-center justify-between">
           <div>
             <h1 className="text-3xl font-bold text-foreground">AI Content Adaptation</h1>
@@ -144,13 +166,11 @@ export default function AIAdapt() {
         </div>
 
         <div className="grid gap-6 lg:grid-cols-3">
-          {/* Controls */}
           <Card variant="default">
             <CardHeader>
               <CardTitle>Adaptation Settings</CardTitle>
             </CardHeader>
             <CardContent className="space-y-6">
-              {/* Original Caption */}
               <div className="space-y-2">
                 <Label>Original Caption</Label>
                 <div className="rounded-lg bg-secondary/50 p-3">
@@ -158,7 +178,6 @@ export default function AIAdapt() {
                 </div>
               </div>
 
-              {/* Tone Selection */}
               <div className="space-y-3">
                 <Label>Tone</Label>
                 <div className="flex flex-wrap gap-2">
@@ -179,7 +198,6 @@ export default function AIAdapt() {
                 </div>
               </div>
 
-              {/* Hashtag Toggle */}
               <div className="flex items-center justify-between">
                 <div className="space-y-0.5">
                   <Label>Optimize Hashtags</Label>
@@ -193,7 +211,6 @@ export default function AIAdapt() {
                 />
               </div>
 
-              {/* Quick Actions */}
               <div className="space-y-2">
                 <Button variant="outline" className="w-full justify-start">
                   Shorten caption
@@ -208,7 +225,6 @@ export default function AIAdapt() {
             </CardContent>
           </Card>
 
-          {/* Adapted Content */}
           <div className="lg:col-span-2 space-y-4">
             {platforms.map((platform) => (
               <Card
@@ -232,6 +248,14 @@ export default function AIAdapt() {
                           onClick={() => copyToClipboard(adaptedContent[platform.id])}
                         >
                           <Copy className="h-4 w-4" />
+                        </Button>
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          disabled={isPosting[platform.id]}
+                          onClick={() => handlePost(platform.id, adaptedContent[platform.id])}
+                        >
+                           {isPosting[platform.id] ? "Posting..." : `Post to ${platform.name}`}
                         </Button>
                         <Badge variant="outline" className="text-success border-success/30">
                           <Check className="h-3 w-3 mr-1" /> Optimized
