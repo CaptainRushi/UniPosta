@@ -1,12 +1,13 @@
 import { useState, useEffect } from "react";
 import { DashboardLayout } from "@/components/layout/DashboardLayout";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
-import { Check, X, Shield, Zap } from "lucide-react";
+import { Check, X, Zap, Loader2 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
+import { billingService } from "@/services/billingService";
 
 interface PlanFeature {
     name: string;
@@ -25,146 +26,188 @@ const features: PlanFeature[] = [
 ];
 
 export default function Plans() {
-    const [currentPlan, setCurrentPlan] = useState<string>("starter");
+    const [plans, setPlans] = useState<any[]>([]);
+    const [subscription, setSubscription] = useState<any>(null);
     const [loading, setLoading] = useState(false);
     const { toast } = useToast();
+    const [userId, setUserId] = useState<string | null>(null);
 
     useEffect(() => {
-        fetchProfile();
+        loadData();
     }, []);
 
-    const fetchProfile = async () => {
+    // Realtime Listener
+    useEffect(() => {
+        if (!userId) return;
+
+        const channel = billingService.subscribeToSubscriptionChanges(userId, (newSub) => {
+            console.log("Realtime Update:", newSub);
+            setSubscription(newSub);
+
+            if (newSub.status === 'active') {
+                toast({
+                    title: "Subscription Active!",
+                    description: "Premium features unlocked.",
+                    className: "bg-green-500 text-white"
+                });
+            }
+        });
+
+        return () => {
+            channel.unsubscribe();
+        }
+    }, [userId]);
+
+    const loadData = async () => {
         try {
             const { data: { user } } = await supabase.auth.getUser();
             if (!user) return;
+            setUserId(user.id);
 
-            const { data, error } = await (supabase
-                .from("profiles") as any)
-                .select("plan")
-                .eq("id", user.id)
-                .single();
+            const fetchedPlans = await billingService.getPlans();
+            setPlans(fetchedPlans || []);
 
-            if (data) {
-                setCurrentPlan(data.plan || "starter");
-            }
-            // If table doesn't exist yet (migration pending), default to starter
+            const currentSub = await billingService.getCurrentSubscription();
+            setSubscription(currentSub);
+
         } catch (error) {
-            console.error("Error fetching profile:", error);
+            console.error(error);
         }
     };
 
-    const updatePlan = async (newPlan: string) => {
+    // Helper to load Razorpay script
+    const loadRazorpay = () => {
+        return new Promise((resolve) => {
+            const script = document.createElement('script');
+            script.src = 'https://checkout.razorpay.com/v1/checkout.js';
+            script.onload = () => resolve(true);
+            script.onerror = () => resolve(false);
+            document.body.appendChild(script);
+        });
+    };
+
+    const handlePurchase = async (plan: any) => {
         setLoading(true);
         try {
-            const { data: { user } } = await supabase.auth.getUser();
-            if (!user) throw new Error("No user found");
-
-            // In a real app, this would redirect to Stripe
-            // For this demo, we verify the backend update
-            const { error } = await (supabase
-                .from("profiles") as any)
-                .upsert({ id: user.id, plan: newPlan, updated_at: new Date().toISOString() });
-
-            if (error) {
-                // Fallback for missing table: just show toast
-                console.warn("Profile update failed (likely missing migration), but UI will update.", error);
+            // 1. Load Razorpay SDK
+            const isLoaded = await loadRazorpay();
+            if (!isLoaded) {
+                toast({ title: "Error", description: "Razorpay SDK failed to load", variant: "destructive" });
+                return;
             }
 
-            setCurrentPlan(newPlan);
+            // 2. Create Pending Sub & Get Order ID
+            const res = await billingService.purchasePlan(plan.id, plan.price);
+
+            // 3. Open Razorpay Checkout
+            const options = {
+                key: res.orderData.key_id,
+                amount: res.orderData.amount,
+                currency: res.orderData.currency,
+                name: "AdSync Pro",
+                description: `Subscription for ${plan.name}`,
+                order_id: res.orderData.order_id,
+                handler: function (response: any) {
+                    console.log("Payment Success:", response);
+                    // In a real app, webhook handles everything.
+                    // But we can show a 'Processing' state here.
+                    toast({
+                        title: "Payment Successful",
+                        description: "Verifying your subscription...",
+                        className: "bg-blue-500 text-white"
+                    });
+                },
+                prefill: {
+                    name: "User Name", // Ideally fetch from profile
+                    email: "user@example.com",
+                    contact: "9999999999"
+                },
+                theme: { color: "#3399cc" }
+            };
+
+            const rzp1 = new (window as any).Razorpay(options);
+            rzp1.open();
+
+            // @ts-ignore
+            setSubscription({ ...subscription, status: 'pending', plan_id: res.subscription.plan_id });
+
             toast({
-                title: `Plan updated to ${newPlan.charAt(0).toUpperCase() + newPlan.slice(1)}`,
-                description: newPlan === 'pro'
-                    ? "Welcome to Pro! You now have access to advanced features."
-                    : "You have downgraded to Starter. Changes will apply immediately.",
+                title: "Payment Initiated",
+                description: "Complete payment in the popup.",
             });
 
         } catch (error: any) {
+            console.error(error);
             toast({
-                title: "Error updating plan",
+                title: "Purchase Failed",
                 description: error.message,
-                variant: "destructive",
+                variant: "destructive"
             });
         } finally {
             setLoading(false);
         }
     };
 
+    const isPlanActive = (planId: string) => {
+        return subscription?.status === 'active' && subscription?.plan_id === planId;
+    }
+
+    const isPending = subscription?.status === 'pending';
+    const hasActiveSub = subscription?.status === 'active';
+
     return (
         <DashboardLayout>
             <div className="space-y-8 max-w-5xl mx-auto">
                 <div className="text-center space-y-2">
-                    <h1 className="text-3xl font-bold">Choose Your Plan</h1>
-                    <p className="text-muted-foreground">Simple pricing for unified social publishing.</p>
+                    <h1 className="text-3xl font-bold">Subscription Plans</h1>
+                    <p className="text-muted-foreground">Select a plan to unlock premium features.</p>
                 </div>
 
-                <div className="grid md:grid-cols-2 gap-8">
-                    {/* Starter Plan */}
-                    <Card className={`relative border-2 ${currentPlan === 'starter' ? 'border-primary shadow-lg' : 'border-border'}`}>
-                        {currentPlan === 'starter' && (
-                            <Badge variant="secondary" className="absolute top-4 right-4">Current Plan</Badge>
-                        )}
-                        <CardHeader>
-                            <CardTitle className="flex items-baseline gap-2">
-                                <span className="text-2xl font-bold">Starter</span>
-                                <span className="text-3xl font-bold">$29</span>
-                                <span className="text-muted-foreground">/ month</span>
-                            </CardTitle>
-                            <CardDescription>Best for individuals & small creators</CardDescription>
-                        </CardHeader>
-                        <CardContent className="space-y-4">
-                            <Button
-                                onClick={() => updatePlan('starter')}
-                                disabled={currentPlan === 'starter' || loading}
-                                variant={currentPlan === 'starter' ? "outline" : "secondary"}
-                                className="w-full"
-                            >
-                                {currentPlan === 'starter' ? "Current Plan" : "Downgrade to Starter"}
-                            </Button>
-                            <Separator />
-                            <ul className="space-y-2 text-sm">
-                                <li className="flex items-center gap-2"><Check className="h-4 w-4 text-green-500" /> Up to 3 connected platforms</li>
-                                <li className="flex items-center gap-2"><Check className="h-4 w-4 text-green-500" /> 10 campaigns</li>
-                                <li className="flex items-center gap-2"><Check className="h-4 w-4 text-green-500" /> 50 posts / month</li>
-                                <li className="flex items-center gap-2"><Check className="h-4 w-4 text-green-500" /> Standard support</li>
-                            </ul>
-                        </CardContent>
-                    </Card>
+                {isPending && (
+                    <div className="bg-yellow-100 border-l-4 border-yellow-500 text-yellow-700 p-4 rounded shadow-sm">
+                        <p className="font-bold">Payment Pending Verification</p>
+                        <p>We have received your request. Admin is verifying your payment. Screen will update automatically.</p>
+                    </div>
+                )}
 
-                    {/* Pro Plan */}
-                    <Card className={`relative border-2 ${currentPlan === 'pro' ? 'border-primary shadow-glow' : 'border-border'}`}>
-                        {currentPlan === 'pro' && (
-                            <Badge variant="default" className="absolute top-4 right-4 bg-primary text-primary-foreground">Current Plan</Badge>
-                        )}
-                        <CardHeader>
-                            <CardTitle className="flex items-baseline gap-2">
-                                <div className="p-1 rounded bg-primary/20 mr-2">
-                                    <Zap className="h-5 w-5 text-primary" />
-                                </div>
-                                <span className="text-2xl font-bold">Pro</span>
-                                <span className="text-3xl font-bold">$99</span>
-                                <span className="text-muted-foreground">/ month</span>
-                            </CardTitle>
-                            <CardDescription>Best for agencies & growing teams</CardDescription>
-                        </CardHeader>
-                        <CardContent className="space-y-4">
-                            <Button
-                                onClick={() => updatePlan('pro')}
-                                disabled={currentPlan === 'pro' || loading}
-                                variant="glow"
-                                className="w-full"
-                            >
-                                {currentPlan === 'pro' ? "Current Plan" : "Upgrade to Pro"}
-                            </Button>
-                            <Separator />
-                            <ul className="space-y-2 text-sm">
-                                <li className="flex items-center gap-2"><Check className="h-4 w-4 text-green-500" /> <strong>10</strong> connected platforms</li>
-                                <li className="flex items-center gap-2"><Check className="h-4 w-4 text-green-500" /> <strong>Unlimited</strong> campaigns</li>
-                                <li className="flex items-center gap-2"><Check className="h-4 w-4 text-green-500" /> <strong>Unlimited</strong> posts</li>
-                                <li className="flex items-center gap-2"><Check className="h-4 w-4 text-green-500" /> Priority Support</li>
-                                <li className="flex items-center gap-2"><Check className="h-4 w-4 text-green-500" /> Marketing API Access</li>
-                            </ul>
-                        </CardContent>
-                    </Card>
+                <div className="grid md:grid-cols-2 gap-8">
+                    {plans.map((plan) => {
+                        const active = isPlanActive(plan.id);
+                        const isPro = plan.name === 'Pro';
+
+                        return (
+                            <Card key={plan.id} className={`relative border-2 ${active ? 'border-primary shadow-lg' : 'border-border'}`}>
+                                {active && (
+                                    <Badge className="absolute top-4 right-4 bg-green-500">Active</Badge>
+                                )}
+                                <CardHeader>
+                                    <CardTitle className="flex items-baseline gap-2">
+                                        <span className="text-2xl font-bold">{plan.name}</span>
+                                        <span className="text-3xl font-bold">${plan.price}</span>
+                                    </CardTitle>
+                                    <CardDescription>{isPro ? "For Power Users" : "For Beginners"}</CardDescription>
+                                </CardHeader>
+                                <CardContent className="space-y-4">
+                                    <Button
+                                        onClick={() => handlePurchase(plan)}
+                                        disabled={loading || active || isPending}
+                                        className="w-full"
+                                        variant={active ? "outline" : "default"}
+                                    >
+                                        {active ? "Current Plan" : (isPending ? "Pending Approval..." : `Purchase ${plan.name}`)}
+                                    </Button>
+
+                                    <div className="text-sm space-y-2">
+                                        {plan.features && Array.isArray(plan.features) && plan.features.map((f: string, i: number) => (
+                                            <div key={i} className="flex items-center gap-2">
+                                                <Check className="h-4 w-4 text-green-500" /> {f}
+                                            </div>
+                                        ))}
+                                    </div>
+                                </CardContent>
+                            </Card>
+                        )
+                    })}
                 </div>
 
                 {/* Feature Comparison */}
@@ -199,3 +242,4 @@ export default function Plans() {
         </DashboardLayout>
     );
 }
+

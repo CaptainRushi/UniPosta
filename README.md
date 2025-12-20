@@ -34,6 +34,10 @@ Uniposta is a comprehensive SaaS application designed to streamline social media
     *   **Storage**: Supabase Storage buckets for media
     *   **Edge Functions**: For handling secure OAuth exchanges (e.g., `oauth-connect`, `publish-post`)
 *   **State Management**: React Query (TanStack Query), Context API
+*   **Billing Infrastructure**:
+    *   **Provider Agnostic**: "Adapter" pattern supporting Razorpay, PayPal, etc.
+    *   **India-First**: Native support for Razorpay subscriptions and INR invoicing.
+    *   **Compliance**: GST-ready invoice generation schema.
 
 ## 🏁 Getting Started
 

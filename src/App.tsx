@@ -16,6 +16,7 @@ import Analytics from "./pages/Analytics";
 import ProtectedRoute from "./components/auth/ProtectedRoute";
 import Plans from "./pages/Plans";
 import Settings from "./pages/Settings";
+import Billing from "./pages/Billing";
 import NotFound from "./pages/NotFound";
 
 import { AuthProvider } from "./contexts/AuthContext";
@@ -42,6 +43,7 @@ const App = () => (
             <Route path="/analytics" element={<Analytics />} />
             <Route path="/plans" element={<ProtectedRoute><Plans /></ProtectedRoute>} />
             <Route path="/settings" element={<Settings />} />
+            <Route path="/settings/billing" element={<ProtectedRoute><Billing /></ProtectedRoute>} />
             <Route path="*" element={<NotFound />} />
           </Routes>
         </BrowserRouter>
