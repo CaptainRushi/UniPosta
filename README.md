@@ -13,10 +13,14 @@ Uniposta is a comprehensive SaaS application designed to streamline social media
 *   **Global Search**: 
     *   Instantly find campaigns, posts, and connected accounts.
     *   Keyboard shortcut support (`Cmd+K` / `Ctrl+K`).
-*   **User Subscriptions**: 
+*   **User Subscriptions & Billing**: 
+    *   **Instant Activation**: Razorpay integration with real-time signature verification via Edge Functions (`verify-payment`).
     *   **Starter Plan**: Essential features for individuals (Limited campaigns/posts).
     *   **Pro Plan**: Advanced features for agencies (Unlimited access, Priority support).
-    *   Dynamic plan enforcement and UI customization (e.g., Pro badges, content limits).
+    *   Dynamic plan enforcement and UI customization.
+*   **Authentication**: 
+    *   **Social Login**: Google, Facebook, etc.
+    *   **Secure**: Supabase Auth with Row Level Security (RLS).
 *   **Social Account Integration**: 
     *   Secure OAuth connections to social platforms.
     *   Visual management of connected accounts in usage settings.
@@ -30,14 +34,13 @@ Uniposta is a comprehensive SaaS application designed to streamline social media
 *   **Styling**: Tailwind CSS, Shadcn UI, Lucas Icons
 *   **Backend**: Supabase
     *   **Database**: PostgreSQL with Row Level Security (RLS)
-    *   **Auth**: Supabase Auth (Email/Password, OAuth)
+    *   **Auth**: Supabase Auth (Email/Password, Google OAuth)
     *   **Storage**: Supabase Storage buckets for media
-    *   **Edge Functions**: For handling secure OAuth exchanges (e.g., `oauth-connect`, `publish-post`)
+    *   **Edge Functions**: Deno-based serverless functions for critical logic.
 *   **State Management**: React Query (TanStack Query), Context API
 *   **Billing Infrastructure**:
-    *   **Provider Agnostic**: "Adapter" pattern supporting Razorpay, PayPal, etc.
-    *   **India-First**: Native support for Razorpay subscriptions and INR invoicing.
-    *   **Compliance**: GST-ready invoice generation schema.
+    *   **Razorpay**: Native support for subscriptions and INR invoicing.
+    *   **Instant Verification**: Custom verification logic for immediate plan upgrades.
 
 ## 🏁 Getting Started
 
@@ -61,10 +64,11 @@ Uniposta is a comprehensive SaaS application designed to streamline social media
     ```
 
 3.  **Environment Setup**
-    Create a `.env` file in the root directory with your Supabase credentials:
+    Create a `.env` file in the root directory with your Supabase and Razorpay credentials:
     ```env
     VITE_SUPABASE_URL=your_supabase_url
     VITE_SUPABASE_ANON_KEY=your_supabase_anon_key
+    VITE_RAZORPAY_KEY_ID=your_razorpay_key_id
     ```
 
 4.  **Database Setup**
@@ -81,13 +85,13 @@ Uniposta is a comprehensive SaaS application designed to streamline social media
 
 ## 📂 Project Structure
 
-*   `src/pages`: Main application routes (Dashboard, Campaigns, Plans, Create Post, etc.)
+*   `src/pages`: Main application routes (Dashboard, Campaigns, Create Post, Billing, etc.)
 *   `src/components`: Reusable UI components.
     *   `src/components/campaigns`: Campaign-specific logic (Create Dialog, Lists).
     *   `src/components/notifications`: Notification panel.
     *   `src/components/search`: Global search implementation.
     *   `src/components/social`: Social account management panels.
-*   `supabase/functions`: Deno-based Edge Functions for server-side logic.
+*   `supabase/functions`: Deno-based Edge Functions (`verify-payment`, `create-payment-order`, etc.).
 *   `supabase/migrations`: SQL scripts for database schema management.
 
 ## ☁️ Backend Deployment
@@ -96,14 +100,21 @@ Uniposta is a comprehensive SaaS application designed to streamline social media
 Deploy specific functions using the Supabase CLI:
 
 ```bash
+# Payment & Billing
+supabase functions deploy create-payment-order --no-verify-jwt
+supabase functions deploy verify-payment --no-verify-jwt
+
+# AI & Media
 supabase functions deploy ai-adaptation --no-verify-jwt
 supabase functions deploy media-processing --no-verify-jwt
 ```
 
 ### Secrets
-Set necessary secrets for the functions:
+Set necessary secrets for the functions to work:
 ```bash
 supabase secrets set OPENAI_API_KEY=sk-...
+supabase secrets set RAZORPAY_KEY_ID=rzp_...
+supabase secrets set RAZORPAY_KEY_SECRET=...
 ```
 
 ## 🛡️ License
