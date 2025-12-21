@@ -1,5 +1,6 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
+import { useAuth } from "@/contexts/AuthContext";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -18,6 +19,13 @@ export default function Signup() {
   const [isLoading, setIsLoading] = useState(false);
   const navigate = useNavigate();
   const { toast } = useToast();
+  const { user } = useAuth();
+
+  useEffect(() => {
+    if (user) {
+      navigate("/dashboard");
+    }
+  }, [user, navigate]);
   const isStrongPassword = (pwd: string) => /(?=.*[A-Za-z])(?=.*\d).{12,}/.test(pwd);
   const getErrorMessage = (err: unknown): string => {
     if (err instanceof Error) return err.message;
@@ -41,21 +49,34 @@ export default function Signup() {
         });
         return;
       }
-      const { error } = await supabase.auth.signUp({
+      console.log("Attempting signup with:", email);
+      const { data, error } = await supabase.auth.signUp({
         email,
         password,
         options: {
+          emailRedirectTo: `${window.location.origin}/login`,
           data: {
             full_name: name,
           },
         },
       });
 
+      console.log("Signup result:", { data, error });
+
       if (error) throw error;
+
+      if (data.user && data.user.identities && data.user.identities.length === 0) {
+        toast({
+          title: "Account exists",
+          description: "An account with this email already exists. Please sign in.",
+          variant: "destructive",
+        });
+        return;
+      }
 
       toast({
         title: "Account created!",
-        description: "Please check your email to verify your account.",
+        description: "check your email for the verification link.",
       });
 
       navigate("/login");

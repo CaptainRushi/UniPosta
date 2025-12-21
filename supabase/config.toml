@@ -1,2 +1,5 @@
-[functions."*"]
-  import_map = "./import_map.json"
+# supabase/config.toml
+# Global configuration for Supabase
+
+# [functions.function-name]
+# verify_jwt = false

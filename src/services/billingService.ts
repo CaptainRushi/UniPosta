@@ -13,6 +13,35 @@ export const billingService = {
         return data as any[];
     },
 
+    async getInvoices() {
+        const { data: { user } } = await supabase.auth.getUser();
+        if (!user) return { data: [] };
+
+        const { data, error } = await supabase
+            .from('payments')
+            .select('*')
+            .eq('user_id', user.id)
+            .order('created_at', { ascending: false });
+
+        if (error) throw error;
+
+        // Map payments to BillingInvoice interface
+        const invoices: BillingInvoice[] = data.map((payment: any) => ({
+            id: payment.id,
+            invoice_number: payment.gateway_order_id || payment.id.slice(0, 8),
+            user_id: payment.user_id,
+            subscription_id: payment.subscription_id,
+            amount_paid: payment.amount,
+            amount_due: 0,
+            currency: payment.currency || 'INR',
+            status: payment.status === 'paid' ? 'paid' : 'open',
+            invoice_pdf_url: null,
+            created_at: payment.created_at
+        }));
+
+        return { data: invoices };
+    },
+
     async getCurrentSubscription() {
         const { data: { user } } = await supabase.auth.getUser();
         if (!user) return null;
@@ -76,8 +105,10 @@ export const billingService = {
         });
 
         if (fnError) {
-            console.error("Edge Function Error:", fnError);
-            throw new Error("Failed to create payment order. Please try again.");
+            console.error("Edge Function Invocation Error:", fnError);
+            // Try to extract a meaningful message if possible, otherwise fallback
+            const msg = fnError.message || JSON.stringify(fnError) || "Failed to create payment order. Please try again.";
+            throw new Error(`Payment Initialization Failed: ${msg}`);
         }
 
         if (orderData.error) {
@@ -115,5 +146,20 @@ export const billingService = {
                 }
             )
             .subscribe();
+    },
+
+    async verifyPayment(response: any) {
+        const { data, error } = await supabase.functions.invoke('verify-payment', {
+            body: {
+                order_id: response.razorpay_order_id,
+                payment_id: response.razorpay_payment_id,
+                signature: response.razorpay_signature
+            }
+        });
+
+        if (error) throw error;
+        if (data.error) throw new Error(data.error);
+
+        return data;
     }
 };

@@ -90,6 +90,22 @@ Uniposta is a comprehensive SaaS application designed to streamline social media
 *   `supabase/functions`: Deno-based Edge Functions for server-side logic.
 *   `supabase/migrations`: SQL scripts for database schema management.
 
+## ☁️ Backend Deployment
+
+### Edge Functions
+Deploy specific functions using the Supabase CLI:
+
+```bash
+supabase functions deploy ai-adaptation --no-verify-jwt
+supabase functions deploy media-processing --no-verify-jwt
+```
+
+### Secrets
+Set necessary secrets for the functions:
+```bash
+supabase secrets set OPENAI_API_KEY=sk-...
+```
+
 ## 🛡️ License
 
 This project is proprietary and confidential.

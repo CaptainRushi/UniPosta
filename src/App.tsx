@@ -14,7 +14,7 @@ import AIAdapt from "./pages/AIAdapt";
 import LaunchAds from "./pages/LaunchAds";
 import Analytics from "./pages/Analytics";
 import ProtectedRoute from "./components/auth/ProtectedRoute";
-import Plans from "./pages/Plans";
+
 import Settings from "./pages/Settings";
 import Billing from "./pages/Billing";
 import NotFound from "./pages/NotFound";
@@ -41,7 +41,7 @@ const App = () => (
             <Route path="/adapt" element={<AIAdapt />} />
             <Route path="/launch" element={<LaunchAds />} />
             <Route path="/analytics" element={<Analytics />} />
-            <Route path="/plans" element={<ProtectedRoute><Plans /></ProtectedRoute>} />
+
             <Route path="/settings" element={<Settings />} />
             <Route path="/settings/billing" element={<ProtectedRoute><Billing /></ProtectedRoute>} />
             <Route path="*" element={<NotFound />} />

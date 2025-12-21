@@ -22,7 +22,7 @@ const navItems = [
   { title: "AI Adapt", url: "/adapt", icon: Sparkles },
   { title: "Launch Ads", url: "/launch", icon: Rocket },
   { title: "Analytics", url: "/analytics", icon: BarChart3 },
-  { title: "Plans", url: "/plans", icon: CreditCard },
+  { title: "Billing", url: "/settings/billing", icon: CreditCard },
 ];
 
 import { APP_NAME } from "@/lib/constants";

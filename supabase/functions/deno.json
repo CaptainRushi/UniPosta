@@ -4,10 +4,12 @@
         "lib": [
             "deno.window"
         ],
-        "strict": true
+        "strict": true,
+        "noImplicitAny": false
     },
     "imports": {
         "std/": "https://deno.land/std@0.168.0/",
+        "http/server": "https://deno.land/std@0.190.0/http/server.ts",
         "http/": "https://deno.land/std@0.168.0/http/",
         "@supabase/supabase-js": "https://esm.sh/@supabase/supabase-js@2"
     }

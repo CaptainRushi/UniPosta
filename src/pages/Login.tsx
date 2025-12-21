@@ -1,5 +1,6 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
+import { useAuth } from "@/contexts/AuthContext";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -19,6 +20,14 @@ export default function Login() {
   const [isLoading, setIsLoading] = useState(false);
   const navigate = useNavigate();
   const { toast } = useToast();
+  const { user } = useAuth();
+
+  useEffect(() => {
+    if (user) {
+      navigate("/dashboard");
+    }
+  }, [user, navigate]);
+
   const getErrorMessage = (err: unknown): string => {
     if (err instanceof Error) return err.message;
     if (typeof err === "object" && err !== null && "message" in err) {
@@ -36,7 +45,13 @@ export default function Login() {
       });
       return;
     }
-    const { error } = await supabase.auth.resend({ type: "signup", email });
+    const { error } = await supabase.auth.resend({
+      type: "signup",
+      email,
+      options: {
+        emailRedirectTo: `${window.location.origin}/login`,
+      },
+    });
     if (error) {
       toast({
         title: "Error",
@@ -138,11 +153,14 @@ export default function Login() {
           </div>
         </CardHeader>
         <CardContent className="space-y-6">
-          <div className="grid grid-cols-2 gap-3">
-            <SocialSignInButton provider="facebook" label="Facebook" />
-            <SocialSignInButton provider="instagram" label="Instagram" />
-            <SocialSignInButton provider="twitter" label="Twitter" />
-            <SocialSignInButton provider="linkedin" label="LinkedIn" />
+          <div className="space-y-3">
+            <SocialSignInButton provider="google" label="Continue with Google" />
+            <div className="grid grid-cols-2 gap-3">
+              <SocialSignInButton provider="facebook" label="Facebook" />
+              <SocialSignInButton provider="instagram" label="Instagram" />
+              <SocialSignInButton provider="twitter" label="Twitter" />
+              <SocialSignInButton provider="linkedin" label="LinkedIn" />
+            </div>
           </div>
 
           <div className="relative">

@@ -497,7 +497,7 @@ export interface Database {
           gateway_payment_id: string | null
           amount: number
           currency: string | null
-          status: 'created' | 'paid' | 'failed' | null
+          status: 'created' | 'pending' | 'paid' | 'verified' | 'failed' | null
           created_at: string | null
         }
         Insert: {
@@ -509,7 +509,7 @@ export interface Database {
           gateway_payment_id?: string | null
           amount: number
           currency?: string | null
-          status?: 'created' | 'paid' | 'failed' | null
+          status?: 'created' | 'pending' | 'paid' | 'verified' | 'failed' | null
           created_at?: string | null
         }
         Update: {
@@ -521,7 +521,7 @@ export interface Database {
           gateway_payment_id?: string | null
           amount?: number
           currency?: string | null
-          status?: 'created' | 'paid' | 'failed' | null
+          status?: 'created' | 'pending' | 'paid' | 'verified' | 'failed' | null
           created_at?: string | null
         }
         Relationships: [
