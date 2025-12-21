@@ -109,3 +109,5 @@ supabase secrets set OPENAI_API_KEY=sk-...
 ## 🛡️ License
 
 This project is proprietary and confidential.
+heelo
+
